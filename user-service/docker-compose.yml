@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=user_service_db
+      - POSTGRES_USER=user_admin
+      - POSTGRES_PASSWORD=user_pass
+    networks:
+      - microservices-net
+
+  web:
+    build: .
+    container_name: user-service-web
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    environment:
+      - DB_NAME=user_service_db
+      - DB_USER=user_admin
+      - DB_PASS=user_pass
+      - DB_HOST=db
+      - DB_PORT=5432
+      - INTERNAL_SECRET=dev-secret-change-in-production
+    networks:
+      - microservices-net
+    depends_on:
+      - db
+
+networks:
+  microservices-net:
+    external: true
+
+volumes:
+  postgres_data:

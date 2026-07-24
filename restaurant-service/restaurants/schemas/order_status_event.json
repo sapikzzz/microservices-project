@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "OrderStatusEvent",
+  "description": "Wiadomosci RabbitMQ publikowane przez restaurant-service do order-service.",
+  "type": "object",
+  "required": ["order_id", "restaurant_id"],
+  "additionalProperties": false,
+  "properties": {
+    "order_id": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "restaurant_id": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "lat": {
+      "type": "number"
+    },
+    "lng": {
+      "type": "number"
+    }
+  }
+}

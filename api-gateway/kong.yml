@@ -1,0 +1,30 @@
+_format_version: "3.0"
+services:
+  - name: user-service
+    url: http://user-service-web:8000
+    routes:
+      - name: user-routes
+        paths:
+          - /api/users
+          - /static
+          - /admin
+        strip_path: false
+
+  - name: order-service
+    url: http://order-service:8000
+    routes:
+      - name: order-routes
+        paths:
+          - /api/orders
+        strip_path: false
+
+  - name: restaurant-service
+    url: http://restaurant-service:8000
+    routes:
+      - name: restaurant-routes
+        paths:
+          - /api/restaurants
+          - /api/admin/restaurants
+          - /api/internal/restaurants
+          - /api/dev/simulate
+        strip_path: false

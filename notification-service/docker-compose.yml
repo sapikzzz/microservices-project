@@ -1,0 +1,39 @@
+services:
+  notification-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - notification-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - microservices-net
+
+  notification-consumer:
+    build: .
+    env_file:
+      - .env
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py start_consumer"
+    volumes:
+      - .:/app
+    depends_on:
+      notification-db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - microservices-net
+
+volumes:
+  notification-db-data:
+
+networks:
+  microservices-net:
+    external: true

@@ -1,0 +1,77 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-deliveries}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - internal
+
+  web:
+    container_name: delivery-service-web
+    build: .
+    ports:
+      - "${APP_PORT:-8004}:8000"
+    environment:
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production-please}
+      DEBUG: ${DEBUG:-True}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+
+      POSTGRES_DB: ${POSTGRES_DB:-deliveries}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+
+      OPENROUTESERVICE_API_KEY: ${OPENROUTESERVICE_API_KEY:-}
+
+      RABBITMQ_URL: ${RABBITMQ_URL:-}
+
+      DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME:-admin}
+      DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL:-admin@example.com}
+      DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD:-admin}
+
+      GUNICORN_WORKERS: ${GUNICORN_WORKERS:-2}
+      GUNICORN_THREADS: ${GUNICORN_THREADS:-4}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - internal
+      - microservices-net   
+
+  consumer:
+    build: .
+    entrypoint: ["python", "manage.py", "start_consumer"]
+    environment:
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production-please}
+      DEBUG: ${DEBUG:-True}
+      POSTGRES_DB: ${POSTGRES_DB:-deliveries}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      RABBITMQ_URL: ${RABBITMQ_URL:-amqp://guest:guest@rabbitmq:5672/%2F}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - internal
+      - microservices-net
+
+volumes:
+  postgres_data:
+
+networks:
+  internal:
+  microservices-net:
+    external: true         

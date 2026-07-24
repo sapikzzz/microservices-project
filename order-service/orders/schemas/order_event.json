@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "OrderEvent",
+  "description": "Walidacja wiadomości przychodzących z RabbitMQ na order_service_queue. Pochodzą z różnych serwisów: restaurant-service (order_id+restaurant_id jako int) oraz delivery-service (order_id jako string + status). Wspólny wymagany element to order_id.",
+  "type": "object",
+  "required": ["order_id"],
+  "additionalProperties": true,
+  "properties": {
+    "order_id": {
+      "type": ["integer", "string"]
+    },
+    "restaurant_id": {
+      "type": ["integer", "string"]
+    },
+    "status": {
+      "type": "string"
+    },
+    "lat": {
+      "type": "number"
+    },
+    "lng": {
+      "type": "number"
+    }
+  }
+}
